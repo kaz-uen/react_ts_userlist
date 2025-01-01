@@ -1,0 +1,28 @@
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.filters {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  background-color: #efefef;
+  height: 60px;
+  padding: 12px 24px;
+}
+
+.filtersTitle {
+  display: inline-block;
+  font-weight: 700;
+  margin-right: 16px;
+}
+
+.filterSection {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}

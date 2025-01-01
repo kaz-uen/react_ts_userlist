@@ -1,12 +1,11 @@
-import './App.css';
+import "@/reset.css";
+import "@/App.css";
+import UserList from "@/containers/UserList";
 
-function App() {
-
+export default function App() {
   return (
     <>
-      <p>初期画面</p>
+      <UserList />
     </>
   )
-}
-
-export default App
+};
