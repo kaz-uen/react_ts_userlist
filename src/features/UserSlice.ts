@@ -1,6 +1,5 @@
-import { AxiosError } from 'axios';
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { userApi } from "@/mock/api";
+import { getApi, isApiError } from "@/middleware/httpRequest";
 import type { User, UserState } from "@/types/userList";
 
 const initialState: UserState = {
@@ -12,16 +11,17 @@ const initialState: UserState = {
 // ユーザーデータ取得
 export const fetchUsers = createAsyncThunk(
   "users/fetchUsers",
-  async () => {
+  async (_, { rejectWithValue }) => {
     try {
-      const response = await userApi.getUsers();
+      const api = await getApi();
+      const response = await api.user.getUsers();
       return response.data;
-    } catch(e: unknown) {
-      if (e instanceof AxiosError && e.response?.status === 404) {
+    } catch(error) {
+      if (isApiError(error) && error.status === 404) {
         // 404の場合は空配列を返す
         return [];
       }
-      return Promise.reject(e);
+      return rejectWithValue(error);
     } finally {
       // NOTE：あれば追加する
     }
@@ -32,7 +32,8 @@ export const fetchUsers = createAsyncThunk(
 export const addUser = createAsyncThunk(
   "users/addUser",
   async (userData: Omit<User, "id">) => {
-    const response = await userApi.createUser(userData);
+    const api = await getApi();
+    const response = await api.user.createUser(userData);
     return response.data;
   }
 );
