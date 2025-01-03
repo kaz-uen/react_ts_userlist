@@ -10,8 +10,11 @@ const mockUsers = responses.userList;
  * ユーザー関連のモックハンドラー
  */
 export const userMockHandlers = (mock: MockAdapter) => {
+  console.log("userMockHandlers")
+  console.log(mock)
   // GETリクエストのモック => 全ユーザーリストを返す
   mock.onGet("/users").reply(() => {
+    console.log(mockUsers)
     // ユーザーデータが空の場合は404を返す
     if (mockUsers.length === 0) {
       return [404, { message: "ユーザーデータが見つかりませんでした。" }];

@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "outDir": "./dist",
+    "outDir": "./build",
     "sourceMap": true,
     "target": "ES2020",
     "useDefineForClassFields": true,

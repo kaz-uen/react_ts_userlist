@@ -60,7 +60,7 @@ export default function Index(): JSX.Element {
 
   // ローディング表示
   if (status === 'loading') {
-    return <div>Loading...</div>;
+    return <div>読み込み中...</div>;
   }
 
   // エラー表示
