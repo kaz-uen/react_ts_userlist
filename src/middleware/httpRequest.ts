@@ -1,4 +1,4 @@
-import type { User } from "@/types/userList";
+// import type { User } from "@/types/userList";
 import axios, { AxiosInstance, AxiosError } from "axios";
 
 interface ApiResponse<T> {
@@ -7,13 +7,21 @@ interface ApiResponse<T> {
   message?: string;
 }
 
-interface UserApiMethods {
-  getUsers: () => Promise<ApiResponse<User[]>>;
-  createUser: (userData: Omit<User, "id">) => Promise<ApiResponse<User>>;
+export interface ApiMethodConfig {
+  path: string;
+  method: "get" | "post" | "put" | "delete";
+  data?: any;
+  handler?: () => Promise<ApiResponse<any>>;
 }
 
+type ApiMethodFunction = {
+  <T extends any[]>(...args: T): ApiMethodConfig;
+};
+
 interface ApiMethods {
-  user: UserApiMethods;
+  [key: string]: {
+    [key: string]: (...args: any[]) => Promise<ApiResponse<any>>;
+  };
 }
 
 // エラー型の定義
@@ -38,7 +46,7 @@ const handleApiError = (error: unknown): ApiError => {
     return {
       status: error.response?.status ?? 500,
       message: error.response?.data?.message ?? "APIエラーが発生しました"
-    };
+    }
   }
   if (isApiError(error)) {
     return error;
@@ -51,7 +59,7 @@ const handleApiError = (error: unknown): ApiError => {
 };
 
 // APIメソッドをラップする関数
-const withErrorHandler = async <T>(
+export const withErrorHandler = async <T>(
   apiCall: () => Promise<ApiResponse<T>>
 ): Promise<ApiResponse<T>> => {
   try {
@@ -79,25 +87,50 @@ const createAxiosInstance = (): AxiosInstance => {
 const createApiMethods = async (axiosInstance: AxiosInstance): Promise<ApiMethods> => {
   if (import.meta.env.VITE_API_MODE === "mock") {
     const { createMockAdapter } = await import("@/mock/api/config/mockConfig");
-    const { userMockHandlers } = await import("@/mock/api/modules/user/userHandlers");
-    // 他のモックハンドラーをここにインポート
     const mock = createMockAdapter(axiosInstance);
-    userMockHandlers(mock);
-    // 他のモックハンドラーもここで初期化
+    console.log(mock)
+
+    // この下のコードを、ユーザーデータのハンドリング処理に限定せず、今後modules/info/infoHandlersなどの処理が追加されることを見込んだコードにできないか？
+    // const { userMockHandlers } = await import("@/mock/api/modules/user/userHandlers");
+    // userMockHandlers(mock);
+    // 全てのモックハンドラーをインポート
+    const mockHandlers = await import ("@/mock/api/modules/index");
+    Object.values(mockHandlers).forEach(handler => handler(mock));
   }
 
-  return {
-    user: {
-      getUsers: () => withErrorHandler(() => axiosInstance.get<User[]>("/users")),
-      createUser: (userData: Omit<User, "id">) =>
-        withErrorHandler(() => axiosInstance.post<User>('/users', userData)),
-    },
-  };
+  // 全てのAPIメソッドを生成
+  const { apiModules } = await import("@/api/apiModules");
+
+  // この下のコードを、/usersの処理だけでなく、今後/infoなどのAPIが追加されることを見込んだコードに変更できないか？
+  // return {
+  //   user: {
+  //     getUsers: () => withErrorHandler(() => axiosInstance.get<User[]>("/users")),
+  //     createUser: (userData: Omit<User, "id">) =>
+  //       withErrorHandler(() => axiosInstance.post<User>('/users', userData)),
+  //   },
+  // };
+  return Object.entries(apiModules).reduce((acc, [key, methods]) => {
+    console.log("モックではない時の処理")
+    acc[key] = Object.entries(methods).reduce((methodAcc, [methodName, method]) => {
+      methodAcc[methodName] = (...args: Parameters<typeof method>) => {
+        const request = (method as ApiMethodFunction)(...args);
+        if (request.handler) return withErrorHandler(request.handler);
+        return withErrorHandler(() =>
+          axiosInstance[request.method]<any>(request.path, request.data)
+        );
+      };
+      return methodAcc;
+    }, {} as Record<string, (...args: any[]) => Promise<ApiResponse<any>>>);
+
+    return acc;
+  }, {} as ApiMethods);
 };
 
 export const getApi = async (): Promise<ApiMethods> => {
   if (!apiInstance) {
+    console.log("!apiInstance")
     apiInstance = await createApiMethods(createAxiosInstance());
   }
+  console.log(apiInstance)
   return apiInstance;
 };

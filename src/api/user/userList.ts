@@ -1,34 +1,56 @@
-import axios from "axios";
+// import type { User } from "@/types/userList";
+// import type { ApiMethodConfig } from "@/middleware/httpRequest";
+
+// type UserApiMethods = {
+//   getUsers: () => ApiMethodConfig;
+//   createUser: (userData: Omit<User, "id">) => ApiMethodConfig;
+// };
+
+// export const userApi: UserApiMethods = {
+//   getUsers: () => ({
+//     path: "/users",
+//     method: "get" as const,
+//   }),
+//   createUser: (userData: Omit<User, "id">) => ({
+//     path: "/users",
+//     method: "post" as const,
+//     data: userData,
+//   }),
+// };
+
+
 import type { User } from "@/types/userList";
+import type { ApiMethodConfig } from "@/middleware/httpRequest";
+import userListData from "@/utils/userListData";
 
-const axiosInstance = axios.create({
-  baseURL: "http://localhost:3000/api",
-  timeout: 5000,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
+let localUserList: User[] = [...userListData];
 
-export const userApi = {
-  getUsers: () => axiosInstance.get<User[]>("/users"),
-  createUser: (userData: Omit<User, "id">) => axiosInstance.post<User>('/users', userData),
+type UserApiMethods = {
+  getUsers: () => ApiMethodConfig;
+  createUser: (userData: Omit<User, "id">) => ApiMethodConfig;
 };
 
-
-// import type { User } from "@/types/userList";
-// import userListData from "@/utils/userListData";
-
-// export const userApi = {
-//   getUsers: () => {
-//     return Promise.resolve({ data: userListData });
-//   },
-//   createUser: (userData: Omit<User, "id">) => {
-//     const getMaxUserId = () => Math.max(...userListData.map((user) => user.id));
-//     const newUser = {
-//       ...userData,
-//       id: userListData.length !== 0 ? getMaxUserId() + 1 : 1,
-//     };
-//     userListData.push(newUser);
-//     return Promise.resolve({ data: newUser });
-//   },
-// };
+export const userApi: UserApiMethods = {
+  getUsers: () => ({
+    path: "/users",
+    method: "get" as const,
+    handler: async () => {
+      return { data: localUserList, status: 200 };
+    }
+  }),
+  createUser: (userData: Omit<User, "id">) => ({
+    path: "/users",
+    method: "post" as const,
+    data: userData,
+    handler: async () => {
+      const newUser = {
+        ...userData,
+        id: localUserList.length > 0
+          ? Math.max(...localUserList.map(user => user.id)) + 1
+          : 1,
+      };
+      localUserList.push(...localUserList, newUser);
+      return { data: newUser, status: 201 };
+    }
+  })
+};

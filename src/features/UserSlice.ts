@@ -21,6 +21,7 @@ export const fetchUsers = createAsyncThunk(
         // 404の場合は空配列を返す
         return [];
       }
+      console.log(error)
       return rejectWithValue(error);
     } finally {
       // NOTE：あれば追加する
@@ -57,8 +58,10 @@ const UserSlice = createSlice({
       })
       // リクエストが失敗したときの処理
       .addCase(fetchUsers.rejected, (state, action) => {
+        console.log(state.error)
+        console.log(action.error.message)
         state.status = 'failed';
-        state.error = action.error.message ?? 'エラーが発生しました';
+        state.error = action.error.message ? "ユーザーデータの取得に失敗しました" : 'エラーが発生しました';
       })
       // addUser
       .addCase(addUser.fulfilled, (state, action) => {
