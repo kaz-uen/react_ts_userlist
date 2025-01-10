@@ -1,6 +1,6 @@
 import type { User } from "@/types/userList";
 import { getCellContent } from "@/utils/userHelpers";
-import { columnLabels } from "@/utils/userListLabel";
+import { columnLabels } from "@/constants/userList/userListLabel";
 import styles from "./Table.module.scss";
 
 type TableProps = {

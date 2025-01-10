@@ -10,6 +10,9 @@ type InputProps = {
   required?: boolean;
 };
 
+/**
+ * 入力欄コンポーネント
+ */
 export default function Input({
   label,
   id,
