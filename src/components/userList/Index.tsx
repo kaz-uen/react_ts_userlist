@@ -27,17 +27,19 @@ export default function Index(): JSX.Element {
 
   // 現在選択されている全てのフィルター条件に基づいてユーザーリストをフィルタリング
   const applyFilters = useCallback(() => {
-    let filteredList = userListData.filter((user: User) => {
+    const filteredList = userListData.filter((user: User) => {
+      const { role, hobbies, studyLangs, useLangs } = user;
+
       // タブによるフィルタリング
-      const matchesTab = activeTab === "all" || user.role === activeTab;
+      const matchesTab = activeTab === "all" || role === activeTab;
       // 趣味によるフィルタリング
-      const matchesHobby = !selectedHobby || user.hobbies.includes(selectedHobby);
+      const matchesHobby = !selectedHobby || hobbies.includes(selectedHobby);
       // 勉強中の言語によるフィルタリング（生徒のみ）
       const matchesStudyLang = !selectedStudyLang ||
-        (user.role === "student" && user.studyLangs?.includes(selectedStudyLang));
+        (role === "student" && studyLangs?.includes(selectedStudyLang));
       // 現場で使っている言語によるフィルタリング（メンターのみ）
       const matchesUseLang = !selectedUseLang ||
-        (user.role === "mentor" && user.useLangs?.includes(selectedUseLang));
+        (role === "mentor" && useLangs?.includes(selectedUseLang));
 
       // 全ての条件を組み合わせる
       return matchesTab && matchesHobby && matchesStudyLang && matchesUseLang;
@@ -69,7 +71,7 @@ export default function Index(): JSX.Element {
   }
 
   // ロールでユーザーを絞り込み
-  const filterUserList = (role: string) => {
+  const filterUserList = (role: TabType) => {
     const filteredList = role === "all"
       ? userListData
       : userListData.filter((user: User) => user.role === role);
