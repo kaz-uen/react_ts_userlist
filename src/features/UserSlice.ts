@@ -21,7 +21,6 @@ export const fetchUsers = createAsyncThunk(
         // 404の場合は空配列を返す
         return [];
       }
-      console.log(error)
       return rejectWithValue(error);
     } finally {
       // NOTE：あれば追加する
